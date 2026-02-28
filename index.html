@@ -281,8 +281,13 @@
                         .procesarConsultaIA(userQuery);
                 });
             } else {
-                // 2. Fallback para probarlo localmente si no estamos en Apps Script (Modo Pruebas)
-                const apiKey = ""; // API Key
+                // 2. Fallback: SOLO para probar la aplicación en local / fuera de Apps Script.
+                const apiKey = ""; // ⚠️ IMPORTANTE: Deja esto vacío en Apps Script. ¡NUNCA pongas aquí el enlace web /exec!
+                
+                if (apiKey.includes("script.google.com")) {
+                    throw new Error("⚠️ ERROR 403: Pegaste el enlace web de Apps Script dentro de la variable apiKey del HTML. Borra ese enlace del código. Para probar el sistema, simplemente abre ese enlace en una nueva pestaña de tu navegador.");
+                }
+
                 const systemPrompt = `Eres un asistente experto en el Manual de Convivencia Escolar de una Institución Educativa en Armenia, Quindío.
 Tu función es analizar casos expuestos por docentes o directivos y asesorarlos sobre cómo actuar según el protocolo institucional.
 
