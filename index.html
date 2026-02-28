@@ -140,22 +140,6 @@
 
     </main>
 
-    <!-- UI Message Modal -->
-    <div id="message-modal" class="fixed inset-0 bg-slate-900 bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 m-4 transform transition-all">
-            <div class="text-center">
-                <div id="modal-icon" class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4">
-                    <i class="fas fa-info-circle text-blue-600 text-xl"></i>
-                </div>
-                <h3 id="modal-title" class="text-lg leading-6 font-medium text-slate-900 mb-2">Mensaje</h3>
-                <p id="modal-text" class="text-sm text-slate-500 mb-6">Detalles del mensaje.</p>
-                <button onclick="closeModal()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none sm:text-sm">
-                    Entendido
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- Script Application Logic -->
     <script>
         // --- Data Definitions ---
@@ -172,7 +156,7 @@
 
         // Processed from prompt rules
         const protocolos = [
-            // CONVIVENCIAL (TIPO I, II, III)
+            // CONVIVENCIAL
             { cat: "Convivencial", num: "Tipo I.1", sit: "Agresiones verbales a algún miembro de la comunidad educativa.", prot: "1. Limpieza/Retiro material. 2. Diálogo sobre daño moral. 3. Acción reparadora pedagógica." },
             { cat: "Convivencial", num: "Tipo II.1", sit: "Porte y consumo de sustancias psicoactivas incluyendo vapeadores.", prot: "1. Proteger privacidad afectado. 2. Informe orientación. 3. Reporte Comité y SIUCE." },
             { cat: "Convivencial", num: "Tipo II.6", sit: "Acciones sistemáticas (Bullying / Ciberbullying).", prot: "1. Cese de divulgación. 2. Informe coordinación. 3. Ruta derechos digitales. 4. SIUCE." },
@@ -196,24 +180,26 @@
         // --- UI Rendering ---
         function renderRutas() {
             const tbody = document.getElementById('rutas-tbody');
-            tbody.innerHTML = rutasAltaComplejidad.map(ruta => `
-                <tr class="hover:bg-blue-50 transition-colors">
-                    <td class="p-4 border-b border-slate-100 font-medium text-slate-800">${ruta.situacion}</td>
-                    <td class="p-4 border-b border-slate-100"><span class="px-2 py-1 rounded text-xs font-bold ${ruta.tipo.includes('III') ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}">${ruta.tipo}</span></td>
-                    <td class="p-4 border-b border-slate-100 text-xs">${ruta.entidades}</td>
-                    <td class="p-4 border-b border-slate-100 text-xs text-blue-700 font-medium">${ruta.contacto}</td>
-                    <td class="p-4 border-b border-slate-100 text-xs">${ruta.obs}</td>
-                </tr>
-            `).join('');
+            if(tbody) {
+                tbody.innerHTML = rutasAltaComplejidad.map(ruta => `
+                    <tr class="hover:bg-blue-50 transition-colors">
+                        <td class="p-4 border-b border-slate-100 font-medium text-slate-800">${ruta.situacion}</td>
+                        <td class="p-4 border-b border-slate-100"><span class="px-2 py-1 rounded text-xs font-bold ${ruta.tipo.includes('III') ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}">${ruta.tipo}</span></td>
+                        <td class="p-4 border-b border-slate-100 text-xs">${ruta.entidades}</td>
+                        <td class="p-4 border-b border-slate-100 text-xs text-blue-700 font-medium">${ruta.contacto}</td>
+                        <td class="p-4 border-b border-slate-100 text-xs">${ruta.obs}</td>
+                    </tr>
+                `).join('');
+            }
         }
 
         function renderProtocolos() {
             const container = document.getElementById('protocolos-container');
-            const filtro = document.getElementById('filtro-categoria').value;
+            const filtroEl = document.getElementById('filtro-categoria');
+            if(!container || !filtroEl) return;
             
-            const filtrados = filtro === 'todos' 
-                ? protocolos 
-                : protocolos.filter(p => p.cat === filtro);
+            const filtro = filtroEl.value;
+            const filtrados = filtro === 'todos' ? protocolos : protocolos.filter(p => p.cat === filtro);
 
             const colors = {
                 "Convivencial": "border-purple-200 bg-purple-50 text-purple-700",
@@ -236,43 +222,33 @@
             `).join('');
         }
 
-        function switchTab(tabId) {
+        // Window-level function to ensure buttons always work
+        window.switchTab = function(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(el => {
                 el.classList.remove('tab-active', 'text-blue-600');
                 el.classList.add('text-slate-500');
             });
             
-            document.getElementById(tabId).classList.remove('hidden');
+            const targetEl = document.getElementById(tabId);
             const activeBtn = document.querySelector(`[data-target="${tabId}"]`);
-            activeBtn.classList.add('tab-active');
-            activeBtn.classList.remove('text-slate-500');
-        }
-
-        function showMessage(title, text, type = 'info') {
-            document.getElementById('modal-title').innerText = title;
-            document.getElementById('modal-text').innerHTML = text;
-            const icon = document.getElementById('modal-icon');
             
-            if (type === 'error') {
-                icon.className = 'mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4';
-                icon.innerHTML = '<i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>';
-            } else {
-                icon.className = 'mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4';
-                icon.innerHTML = '<i class="fas fa-info-circle text-blue-600 text-xl"></i>';
+            if(targetEl) targetEl.classList.remove('hidden');
+            if(activeBtn) {
+                activeBtn.classList.add('tab-active');
+                activeBtn.classList.remove('text-slate-500');
             }
-            
-            document.getElementById('message-modal').classList.remove('hidden');
-        }
+        };
 
-        function closeModal() {
-            document.getElementById('message-modal').classList.add('hidden');
-        }
-
-        // --- AI Integration Logic (Dual Mode: Apps Script + Web/Canvas) ---
+        // --- LÓGICA DE INTEGRACIÓN CON IA ---
         
+        // ⚠️ INSTRUCCIONES:
+        // Si usas GitHub: Pega tu Clave API de Gemini que empieza por "AIza..." dentro de las comillas.
+        // Si usas Apps Script: Deja esto completamente en blanco (""). NUNCA pegues aquí el enlace /exec.
+        const GEMINI_API_KEY = ""; 
+
         async function fetchAIResponse(userQuery, retries = 5) {
-            // 1. Intentamos usar el entorno de Apps Script primero (Modo Producción)
+            // 1. Detección de Google Apps Script
             if (typeof google !== 'undefined' && google.script && google.script.run) {
                 return new Promise((resolve, reject) => {
                     google.script.run
@@ -280,44 +256,28 @@
                         .withFailureHandler((error) => reject(error))
                         .procesarConsultaIA(userQuery);
                 });
-            } else {
-                // 2. Fallback: SOLO para probar la aplicación en local / fuera de Apps Script.
-                const apiKey = ""; // ⚠️ IMPORTANTE: Deja esto vacío en Apps Script. ¡NUNCA pongas aquí el enlace web /exec!
+            } 
+            // 2. Detección de uso en GitHub / Local (Usando la Clave API directa)
+            else {
+                if (!GEMINI_API_KEY || GEMINI_API_KEY.trim() === "") {
+                    throw new Error("⚠️ Para usar esto en GitHub, debes configurar tu GEMINI_API_KEY en el código HTML. Si estás en Apps Script, debes Implementar como Aplicación Web y abrir el enlace generado.");
+                }
                 
-                if (apiKey.includes("script.google.com")) {
-                    throw new Error("⚠️ ERROR 403: Pegaste el enlace web de Apps Script dentro de la variable apiKey del HTML. Borra ese enlace del código. Para probar el sistema, simplemente abre ese enlace en una nueva pestaña de tu navegador.");
+                if (GEMINI_API_KEY.includes("script.google.com")) {
+                    throw new Error("⚠️ ERROR 403: Pusiste un enlace web de Google Apps Script en lugar de una Clave API. Debes usar una clave generada en Google AI Studio (que empiece por AIza...).");
                 }
 
                 const systemPrompt = `Eres un asistente experto en el Manual de Convivencia Escolar de una Institución Educativa en Armenia, Quindío.
 Tu función es analizar casos expuestos por docentes o directivos y asesorarlos sobre cómo actuar según el protocolo institucional.
 
 REGLAS DE CLASIFICACIÓN Y RUTAS:
-1. TIPO I (Conflictos manejados inadecuadamente sin daño físico, agresión verbal, daños leves, mal uso de bienes, presentarse bajo efectos SPA, juegos de azar, vocabulario soez). Ruta: Intervención pedagógica, registro en observador, citación padres, acción reparadora. NO requiere autoridades externas.
-2. TIPO II (Acoso escolar/Bullying, consumo/porte de SPA y vapeadores, negligencia familiar, violencia de género sin delito, riesgo suicida). Ruta: Sector salud prioritario, citación padres, ICBF (Línea 141) o Comisaría si aplica, reporte obligatorio en SIUCE. No interrogar sin acudiente.
-3. TIPO III (Presuntos delitos, violencia sexual, expendio/tráfico de SPA, porte de armas, lesiones con incapacidad, extorsión, hurto). Ruta: ¡NO MEDIAR NI CONCILIAR! Avisar a Policía de Infancia (Línea 123), Fiscalía URI (Cra 13 #19-44), ICBF y Sector Salud (Hospital San Juan de Dios para abuso sexual en primeras 72h). Aislar, proteger escena, NO interrogar, entregar a autoridades.
+1. TIPO I (Conflictos manejados inadecuadamente sin daño físico, agresión verbal, daños leves, mal uso de bienes). Ruta: Intervención pedagógica, registro observador.
+2. TIPO II (Acoso escolar/Bullying, consumo/porte de SPA, negligencia). Ruta: Sector salud prioritario, citación padres, ICBF (Línea 141), SIUCE.
+3. TIPO III (Presuntos delitos, violencia sexual, expendio de SPA, armas). Ruta: Avisar a Policía (Línea 123), Fiscalía URI (Cra 13 #19-44). Aislar, NO interrogar.
 
-CLASIFICACIÓN DE DEBERES Y FALTAS:
-- Disciplinario: Uniforme, evasión de clases, indisciplina, celulares en clase, irrespeto, juegos bruscos en descanso.
-- Académico: No traer materiales, inasistencias injustificadas, bajo rendimiento.
-- Administrativo: No traer acudiente cuando se cita, salir sin permiso, daños a planta física, mal comportamiento en Restaurante PAE.
-- Convivencial: Toda agresión, acoso, drogas, delitos.
+Responde estructuradamente: 1. Análisis. 2. Clasificación. 3. Protocolo. 4. Ruta (si aplica). 5. Actas a llenar.`;
 
-ACTAS A DILIGENCIAR SEGÚN CASO:
-- Tipo I / Faltas leves: Registro en el Observador del Alumno, Compromiso Verbal o Pedagógico.
-- Tipo II / Académico grave: Acta de Compromiso para Estudiantes y Familias, Remisión a Orientación Escolar.
-- Tipo III: Acta de entrega a autoridades, Denuncia penal (si aplica), Reporte en plataforma SIUCE.
-
-INSTRUCCIONES DE RESPUESTA:
-Cuando el usuario te describa un caso, responde en formato Markdown de manera estructurada:
-1. **Análisis del Caso**: Resumen breve de la falta.
-2. **Clasificación**: Indica si es Administrativo, Académico, Disciplinario o Convivencial. Indica si es Situación Tipo I, II o III.
-3. **Protocolo Institucional a Seguir**: Paso a paso (ej. 1. Retención del objeto, 2. Registro...).
-4. **Ruta de Atención Externa (Si aplica)**: Entidades y teléfonos en Armenia.
-5. **Tipo de Acta/Documento**: Qué se debe firmar o llenar.
-
-Sé directo, profesional, empático y protege los derechos de los menores (menciona no vulnerar el debido proceso).`;
-
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
                 const payload = {
                     contents: [{ role: "user", parts: [{ text: userQuery }] }],
                     systemInstruction: { parts: [{ text: systemPrompt }] }
@@ -362,7 +322,6 @@ Sé directo, profesional, empático y protege los derechos de los menores (menci
                 .replace(/<\/li>\n/g, '</li>')
                 .replace(/\n/g, '<br>');
             
-            // Close unclosed ULs safely
             if (html.includes('<ul>') && !html.includes('</ul>')) html += '</ul>';
             return `<p>${html}</p>`;
         }
@@ -387,46 +346,45 @@ Sé directo, profesional, empático y protege los derechos de los menores (menci
             container.scrollTop = container.scrollHeight;
         }
 
-        document.getElementById('chat-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const input = document.getElementById('chat-input');
-            const errorDiv = document.getElementById('ai-error');
-            const btn = e.target.querySelector('button');
-            const query = input.value.trim();
-
-            if (!query) return;
-
-            // UI Updates
-            input.value = '';
-            input.disabled = true;
-            btn.disabled = true;
-            btn.innerHTML = '<div class="loader"></div>';
-            errorDiv.classList.add('hidden');
-            
-            appendMessage('user', query);
-
-            try {
-                const responseText = await fetchAIResponse(query);
-                appendMessage('ai', responseText);
-            } catch (error) {
-                console.error("Error en la solicitud: ", error);
-                
-                // Extraer el mensaje real del error de Apps Script o mostrar un genérico
-                let errorMsg = error.message || "Error al conectar con el asesor IA. Por favor, intenta de nuevo.";
-                errorDiv.innerText = errorMsg;
-                errorDiv.classList.remove('hidden');
-            } finally {
-                input.disabled = false;
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-paper-plane"></i>';
-                input.focus();
-            }
-        });
-
-        // Initialize App
+        // Initialization
         document.addEventListener('DOMContentLoaded', () => {
             renderRutas();
             renderProtocolos();
+
+            const chatForm = document.getElementById('chat-form');
+            if(chatForm) {
+                chatForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const input = document.getElementById('chat-input');
+                    const errorDiv = document.getElementById('ai-error');
+                    const btn = e.target.querySelector('button');
+                    const query = input.value.trim();
+
+                    if (!query) return;
+
+                    input.value = '';
+                    input.disabled = true;
+                    btn.disabled = true;
+                    btn.innerHTML = '<div class="loader"></div>';
+                    errorDiv.classList.add('hidden');
+                    
+                    appendMessage('user', query);
+
+                    try {
+                        const responseText = await fetchAIResponse(query);
+                        appendMessage('ai', responseText);
+                    } catch (error) {
+                        console.error("Error en la solicitud: ", error);
+                        errorDiv.innerText = error.message || "Error al conectar con la IA.";
+                        errorDiv.classList.remove('hidden');
+                    } finally {
+                        input.disabled = false;
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+                        input.focus();
+                    }
+                });
+            }
         });
 
     </script>
