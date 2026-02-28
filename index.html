@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Convivencia Escolar y Rutas de Atención</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Custom scrollbar for better appearance */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .tab-active { border-bottom: 2px solid #2563eb; color: #1e3a8a; font-weight: 600; }
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #3b82f6; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1rem; }
+        .markdown-body p { margin-bottom: 0.75rem; }
+        .markdown-body strong { font-weight: 600; color: #1e293b; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-blue-900 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <img src="https://i.postimg.cc/9fJsDW4Z/escudo.png" alt="Escudo I.E. Los Quindos" class="h-14 w-auto drop-shadow-lg bg-white rounded-full p-1">
+                <div>
+                    <h1 class="text-xl font-bold">I.E. Los Quindos - Convivencia Escolar</h1>
+                    <p class="text-xs text-blue-200">Armenia, Quindío - Protocolos y Rutas de Atención</p>
+                </div>
+            </div>
+            <div class="hidden md:flex space-x-4 text-sm font-medium">
+                <span class="bg-blue-800 px-3 py-1 rounded-full"><i class="fas fa-phone-alt mr-1"></i> ICBF: 141</span>
+                <span class="bg-blue-800 px-3 py-1 rounded-full"><i class="fas fa-phone-alt mr-1"></i> Emergencias: 123</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex space-x-6 overflow-x-auto" id="tabs">
+                <button onclick="switchTab('rutas')" class="tab-btn tab-active py-4 px-2 text-sm whitespace-nowrap focus:outline-none transition-colors" data-target="rutas">
+                    <i class="fas fa-route mr-2"></i>Rutas Alta Complejidad
+                </button>
+                <button onclick="switchTab('protocolos')" class="tab-btn text-slate-500 hover:text-blue-600 py-4 px-2 text-sm whitespace-nowrap focus:outline-none transition-colors" data-target="protocolos">
+                    <i class="fas fa-clipboard-list mr-2"></i>Protocolos Clasificados
+                </button>
+                <button onclick="switchTab('ia')" class="tab-btn text-slate-500 hover:text-blue-600 py-4 px-2 text-sm whitespace-nowrap focus:outline-none transition-colors" data-target="ia">
+                    <i class="fas fa-robot mr-2"></i>Analizador de Casos IA
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        
+        <!-- View: Rutas Alta Complejidad -->
+        <section id="rutas" class="tab-content block space-y-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Rutas de Atención de Alta Complejidad</h2>
+                <p class="text-slate-600 mb-6">Directorio de acción rápida para situaciones críticas (Tipo II y Tipo III) en Armenia, Quindío.</p>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 text-sm uppercase tracking-wider">
+                                <th class="p-4 rounded-tl-lg">Situación</th>
+                                <th class="p-4">Tipo</th>
+                                <th class="p-4">Entidades a Reportar</th>
+                                <th class="p-4">Contacto (Armenia)</th>
+                                <th class="p-4 rounded-tr-lg">Observaciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rutas-tbody" class="text-sm divide-y divide-slate-100">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- View: Protocolos Clasificados -->
+        <section id="protocolos" class="tab-content hidden space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">Protocolos y Faltas Clasificadas</h2>
+                    <p class="text-slate-600">Catálogo de actuaciones agrupado por área de gestión académica y escolar.</p>
+                </div>
+                <div class="mt-4 md:mt-0 flex space-x-2">
+                    <select id="filtro-categoria" onchange="renderProtocolos()" class="bg-white border border-slate-300 text-slate-700 py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="todos">Todas las categorías</option>
+                        <option value="Convivencial">Convivencial (Tipo I, II, III)</option>
+                        <option value="Disciplinaria">Disciplinaria</option>
+                        <option value="Académica">Académica</option>
+                        <option value="Administrativa">Administrativa</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="protocolos-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- View: Analizador IA -->
+        <section id="ia" class="tab-content hidden h-[75vh] flex flex-col">
+            <div class="bg-gradient-to-r from-blue-900 to-blue-700 rounded-t-xl p-6 text-white shadow-md">
+                <h2 class="text-2xl font-bold flex items-center"><i class="fas fa-brain mr-3"></i> Asesor Experto en Convivencia (IA)</h2>
+                <p class="mt-2 text-blue-100 text-sm">Describe el caso o situación. La inteligencia artificial analizará el manual, te indicará el Tipo de Falta, la ruta a seguir, los protocolos institucionales y las entidades de apoyo.</p>
+            </div>
+            
+            <div id="chat-container" class="flex-grow bg-white border-x border-slate-200 p-4 overflow-y-auto flex flex-col space-y-4">
+                <!-- Welcome Message -->
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 bg-blue-100 rounded-full p-3 mr-3">
+                        <i class="fas fa-robot text-blue-600 text-xl"></i>
+                    </div>
+                    <div class="bg-slate-100 text-slate-800 p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[85%]">
+                        <p class="font-semibold mb-1">¡Hola! Soy tu asesor de convivencia escolar.</p>
+                        <p class="text-sm">Describe la situación que ha ocurrido. Por ejemplo: <em>"Dos estudiantes de grado octavo fueron sorprendidos consumiendo vapeadores en el baño"</em> o <em>"Un estudiante no trajo los materiales de clase por tercera vez"</em>.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-b-xl p-4 shadow-sm">
+                <form id="chat-form" class="flex items-center space-x-3">
+                    <input type="text" id="chat-input" placeholder="Describe el caso aquí..." class="flex-grow bg-slate-50 border border-slate-300 rounded-full py-3 px-6 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 w-12 h-12 flex items-center justify-center transition-colors shadow-sm disabled:opacity-50">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+                <div id="ai-error" class="hidden text-red-500 text-sm mt-2 text-center"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- UI Message Modal -->
+    <div id="message-modal" class="fixed inset-0 bg-slate-900 bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 m-4 transform transition-all">
+            <div class="text-center">
+                <div id="modal-icon" class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4">
+                    <i class="fas fa-info-circle text-blue-600 text-xl"></i>
+                </div>
+                <h3 id="modal-title" class="text-lg leading-6 font-medium text-slate-900 mb-2">Mensaje</h3>
+                <p id="modal-text" class="text-sm text-slate-500 mb-6">Detalles del mensaje.</p>
+                <button onclick="closeModal()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none sm:text-sm">
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Application Logic -->
+    <script>
+        // --- Data Definitions ---
+        const rutasAltaComplejidad = [
+            { situacion: "Agresión Sistemática (Bullying / Ciberbullying)", tipo: "TIPO II", entidades: "1. Sector Salud<br>2. ICBF<br>3. Comisaría de Familia", contacto: "1. EPS del estudiante<br>2. ICBF Centro Zonal (Línea 141) Cra 15 #10N-46<br>3. Comisaría comuna", obs: "Priorizar atención en salud. Reportar obligatoriamente en el SIUCE." },
+            { situacion: "Presuntos Delitos (Agresiones con incapacidad, extorsión, etc)", tipo: "TIPO III", entidades: "1. Policía Infancia<br>2. Fiscalía<br>3. ICBF/Comisaría<br>4. Salud", contacto: "1. Línea 123<br>2. URI Fiscalía Cra 13 #19-44<br>3. Hospital más cercano", obs: "<span class='font-bold text-red-600'>¡NO MEDIAR NI CONCILIAR!</span> La institución protege y reporta, no investiga." },
+            { situacion: "Presunta Violencia Sexual / Acoso", tipo: "TIPO III", entidades: "1. Sector Salud<br>2. Policía Infancia<br>3. Fiscalía<br>4. ICBF/Comisaría", contacto: "1. Hospital San Juan de Dios<br>2. Línea 123<br>3. URI Cra 13 #19-44", obs: "Atención en salud en las primeras 72 horas es crucial (Kit profilaxis). No revictimizar." },
+            { situacion: "Expendio/Tráfico de SPA o Vapeadores", tipo: "TIPO III", entidades: "1. Policía de Infancia y Adolescencia", contacto: "1. Línea 123", obs: "Asegurar evidencia sin contaminar. Proteger seguridad de la comunidad." },
+            { situacion: "Consumo o Porte de SPA o Vapeadores", tipo: "TIPO II", entidades: "1. Sector Salud<br>2. Familia", contacto: "1. Línea 123 (crisis) o EPS<br>2. Acudiente", obs: "Enfoque de salud pública y prevención. Se diferencia del expendio." },
+            { situacion: "Porte de Armas", tipo: "TIPO III", entidades: "1. Policía de Infancia<br>2. ICBF / Comisaría", contacto: "1. Línea 123<br>2. ICBF Centro Zonal Armenia", obs: "<span class='font-bold text-red-600'>¡NO MANIPULAR EL ARMA!</span> Aislar situación y esperar autoridad." },
+            { situacion: "Negligencia, Abandono Familiar, Trabajo Infantil", tipo: "TIPO II", entidades: "1. ICBF<br>2. Sector Salud", contacto: "1. ICBF Línea 141", obs: "Diálogo pedagógico primero. Si no mejora, restablecimiento de derechos." },
+            { situacion: "Violencia de Género / Riesgo Suicida", tipo: "TIPO II / III", entidades: "1. Sector Salud<br>2. Comisaría / Fiscalía<br>3. Familia", contacto: "1. Línea 123 / EPS<br>2. CAVIF / URI", obs: "Prioridad absoluta la vida. Activar ruta de salud mental. ¡No dejar solo al menor!" }
+        ];
+
+        // Processed from prompt rules
+        const protocolos = [
+            // CONVIVENCIAL (TIPO I, II, III)
+            { cat: "Convivencial", num: "Tipo I.1", sit: "Agresiones verbales a algún miembro de la comunidad educativa.", prot: "1. Limpieza/Retiro material. 2. Diálogo sobre daño moral. 3. Acción reparadora pedagógica." },
+            { cat: "Convivencial", num: "Tipo II.1", sit: "Porte y consumo de sustancias psicoactivas incluyendo vapeadores.", prot: "1. Proteger privacidad afectado. 2. Informe orientación. 3. Reporte Comité y SIUCE." },
+            { cat: "Convivencial", num: "Tipo II.6", sit: "Acciones sistemáticas (Bullying / Ciberbullying).", prot: "1. Cese de divulgación. 2. Informe coordinación. 3. Ruta derechos digitales. 4. SIUCE." },
+            { cat: "Convivencial", num: "Tipo III.1", sit: "Agresión física generando incapacidad.", prot: "1. Llamada Policía. 2. Aislar estudiante/objeto. 3. NO interrogar. 4. Entrega autoridades con acudiente." },
+            { cat: "Convivencial", num: "Tipo III.6", sit: "Venta o distribución de vapeadores o SPA.", prot: "1. Denuncia inmediata Fiscalía/ICBF. 2. Aislar estudiante. 3. NO interrogar. 4. Rectoría." },
+            // DISCIPLINARIA
+            { cat: "Disciplinaria", num: "Deber 1", sit: "Conocer y aplicar el Pacto de Convivencia.", prot: "1. Diálogo reflexivo. 2. Registro en el observador. 3. Compromiso verbal." },
+            { cat: "Disciplinaria", num: "Deber 3", sit: "Mantener buena presentación del uniforme, sin accesorios no permitidos.", prot: "1. Llamado de atención privado. 2. Registro en observador. 3. Citación a acudiente si persiste." },
+            { cat: "Disciplinaria", num: "Deber 16", sit: "Evadir y/o fugarse de clase.", prot: "1. Verificación cada hora. 2. Reporte inmediato de fuga a vigilancia. 3. Comunicación a padres." },
+            { cat: "Disciplinaria", num: "Deber 20", sit: "Traer celulares, audífonos que interfieran en clase.", prot: "1. Solicitud de guardado. 2. Retención preventiva. 3. Registro y entrega al acudiente." },
+            // ACADÉMICA
+            { cat: "Académica", num: "Deber 4", sit: "Proveerse de elementos necesarios para el trabajo académico.", prot: "1. Indagar causas. 2. Diálogo con estudiante. 3. Notificación a padres." },
+            { cat: "Académica", num: "Deber 12", sit: "Inasistencia y no justificación de la misma.", prot: "1. Control diario. 2. Validación excusa. 3. Registro en plataforma." },
+            { cat: "Académica", num: "Deber 40", sit: "Bajo rendimiento, no cumplir responsabilidades académicas.", prot: "1. Seguimiento de notas. 2. Reporte bajo rendimiento. 3. Citación para plan de mejora." },
+            // ADMINISTRATIVA
+            { cat: "Administrativa", num: "Deber 9", sit: "Presentarse con acudiente de forma oportuna cuando es citado.", prot: "1. Recepción y acta. 2. Registro de inasistencia. 3. Reprogramación." },
+            { cat: "Administrativa", num: "Deber 19", sit: "Retirarse de la institución sin horario o sin autorización.", prot: "1. Exigencia boleta salida. 2. Entrega a acudiente autorizado. 3. Firma planilla." },
+            { cat: "Administrativa", num: "Deber 51-60", sit: "Incumplir normas del Restaurante Escolar (PAE).", prot: "1. Verificación e Instrucción. 2. Manejo disciplinario en comedor. 3. Registro en Bitácora PAE." }
+        ];
+
+        // --- UI Rendering ---
+        function renderRutas() {
+            const tbody = document.getElementById('rutas-tbody');
+            tbody.innerHTML = rutasAltaComplejidad.map(ruta => `
+                <tr class="hover:bg-blue-50 transition-colors">
+                    <td class="p-4 border-b border-slate-100 font-medium text-slate-800">${ruta.situacion}</td>
+                    <td class="p-4 border-b border-slate-100"><span class="px-2 py-1 rounded text-xs font-bold ${ruta.tipo.includes('III') ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}">${ruta.tipo}</span></td>
+                    <td class="p-4 border-b border-slate-100 text-xs">${ruta.entidades}</td>
+                    <td class="p-4 border-b border-slate-100 text-xs text-blue-700 font-medium">${ruta.contacto}</td>
+                    <td class="p-4 border-b border-slate-100 text-xs">${ruta.obs}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderProtocolos() {
+            const container = document.getElementById('protocolos-container');
+            const filtro = document.getElementById('filtro-categoria').value;
+            
+            const filtrados = filtro === 'todos' 
+                ? protocolos 
+                : protocolos.filter(p => p.cat === filtro);
+
+            const colors = {
+                "Convivencial": "border-purple-200 bg-purple-50 text-purple-700",
+                "Disciplinaria": "border-orange-200 bg-orange-50 text-orange-700",
+                "Académica": "border-blue-200 bg-blue-50 text-blue-700",
+                "Administrativa": "border-teal-200 bg-teal-50 text-teal-700"
+            };
+
+            container.innerHTML = filtrados.map(p => `
+                <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs font-bold px-2 py-1 rounded uppercase ${colors[p.cat]}">${p.cat} - ${p.num}</span>
+                    </div>
+                    <h3 class="font-semibold text-slate-800 mb-3 text-sm">${p.sit}</h3>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                        <p class="text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Protocolo de Acción</p>
+                        <p class="text-sm text-slate-700">${p.prot}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('tab-active', 'text-blue-600');
+                el.classList.add('text-slate-500');
+            });
+            
+            document.getElementById(tabId).classList.remove('hidden');
+            const activeBtn = document.querySelector(`[data-target="${tabId}"]`);
+            activeBtn.classList.add('tab-active');
+            activeBtn.classList.remove('text-slate-500');
+        }
+
+        function showMessage(title, text, type = 'info') {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-text').innerHTML = text;
+            const icon = document.getElementById('modal-icon');
+            
+            if (type === 'error') {
+                icon.className = 'mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4';
+                icon.innerHTML = '<i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>';
+            } else {
+                icon.className = 'mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4';
+                icon.innerHTML = '<i class="fas fa-info-circle text-blue-600 text-xl"></i>';
+            }
+            
+            document.getElementById('message-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('message-modal').classList.add('hidden');
+        }
+
+        // --- AI Integration Logic (Dual Mode: Apps Script + Web/Canvas) ---
+        
+        async function fetchAIResponse(userQuery, retries = 5) {
+            // 1. Intentamos usar el entorno de Apps Script primero (Modo Producción)
+            if (typeof google !== 'undefined' && google.script && google.script.run) {
+                return new Promise((resolve, reject) => {
+                    google.script.run
+                        .withSuccessHandler((response) => resolve(response))
+                        .withFailureHandler((error) => reject(error))
+                        .procesarConsultaIA(userQuery);
+                });
+            } else {
+                // 2. Fallback para probarlo localmente si no estamos en Apps Script (Modo Pruebas)
+                const apiKey = ""; // API Key
+                const systemPrompt = `Eres un asistente experto en el Manual de Convivencia Escolar de una Institución Educativa en Armenia, Quindío.
+Tu función es analizar casos expuestos por docentes o directivos y asesorarlos sobre cómo actuar según el protocolo institucional.
+
+REGLAS DE CLASIFICACIÓN Y RUTAS:
+1. TIPO I (Conflictos manejados inadecuadamente sin daño físico, agresión verbal, daños leves, mal uso de bienes, presentarse bajo efectos SPA, juegos de azar, vocabulario soez). Ruta: Intervención pedagógica, registro en observador, citación padres, acción reparadora. NO requiere autoridades externas.
+2. TIPO II (Acoso escolar/Bullying, consumo/porte de SPA y vapeadores, negligencia familiar, violencia de género sin delito, riesgo suicida). Ruta: Sector salud prioritario, citación padres, ICBF (Línea 141) o Comisaría si aplica, reporte obligatorio en SIUCE. No interrogar sin acudiente.
+3. TIPO III (Presuntos delitos, violencia sexual, expendio/tráfico de SPA, porte de armas, lesiones con incapacidad, extorsión, hurto). Ruta: ¡NO MEDIAR NI CONCILIAR! Avisar a Policía de Infancia (Línea 123), Fiscalía URI (Cra 13 #19-44), ICBF y Sector Salud (Hospital San Juan de Dios para abuso sexual en primeras 72h). Aislar, proteger escena, NO interrogar, entregar a autoridades.
+
+CLASIFICACIÓN DE DEBERES Y FALTAS:
+- Disciplinario: Uniforme, evasión de clases, indisciplina, celulares en clase, irrespeto, juegos bruscos en descanso.
+- Académico: No traer materiales, inasistencias injustificadas, bajo rendimiento.
+- Administrativo: No traer acudiente cuando se cita, salir sin permiso, daños a planta física, mal comportamiento en Restaurante PAE.
+- Convivencial: Toda agresión, acoso, drogas, delitos.
+
+ACTAS A DILIGENCIAR SEGÚN CASO:
+- Tipo I / Faltas leves: Registro en el Observador del Alumno, Compromiso Verbal o Pedagógico.
+- Tipo II / Académico grave: Acta de Compromiso para Estudiantes y Familias, Remisión a Orientación Escolar.
+- Tipo III: Acta de entrega a autoridades, Denuncia penal (si aplica), Reporte en plataforma SIUCE.
+
+INSTRUCCIONES DE RESPUESTA:
+Cuando el usuario te describa un caso, responde en formato Markdown de manera estructurada:
+1. **Análisis del Caso**: Resumen breve de la falta.
+2. **Clasificación**: Indica si es Administrativo, Académico, Disciplinario o Convivencial. Indica si es Situación Tipo I, II o III.
+3. **Protocolo Institucional a Seguir**: Paso a paso (ej. 1. Retención del objeto, 2. Registro...).
+4. **Ruta de Atención Externa (Si aplica)**: Entidades y teléfonos en Armenia.
+5. **Tipo de Acta/Documento**: Qué se debe firmar o llenar.
+
+Sé directo, profesional, empático y protege los derechos de los menores (menciona no vulnerar el debido proceso).`;
+
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                const payload = {
+                    contents: [{ role: "user", parts: [{ text: userQuery }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] }
+                };
+
+                const delay = ms => new Promise(res => setTimeout(res, ms));
+                let currentDelay = 1000;
+
+                for (let i = 0; i < retries; i++) {
+                    try {
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+                        
+                        const data = await response.json();
+                        if (data.candidates && data.candidates[0].content.parts[0].text) {
+                            return data.candidates[0].content.parts[0].text;
+                        } else {
+                            throw new Error("Estructura de respuesta inválida desde la API.");
+                        }
+                    } catch (error) {
+                        if (i === retries - 1) throw error;
+                        await delay(currentDelay);
+                        currentDelay *= 2;
+                    }
+                }
+            }
+        }
+
+        // Parse basic markdown for the chat
+        function formatMarkdown(text) {
+            let html = text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n- /g, '<ul><li>')
+                .replace(/\n\d+\. /g, '<ul><li>')
+                .replace(/<\/li>\n/g, '</li>')
+                .replace(/\n/g, '<br>');
+            
+            // Close unclosed ULs safely
+            if (html.includes('<ul>') && !html.includes('</ul>')) html += '</ul>';
+            return `<p>${html}</p>`;
+        }
+
+        function appendMessage(sender, text) {
+            const container = document.getElementById('chat-container');
+            const isUser = sender === 'user';
+            
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `flex items-start ${isUser ? 'justify-end' : ''}`;
+            
+            const avatar = isUser ? '' : `<div class="flex-shrink-0 bg-blue-100 rounded-full p-3 mr-3"><i class="fas fa-robot text-blue-600 text-xl"></i></div>`;
+            const content = `
+                <div class="${isUser ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-slate-100 text-slate-800 rounded-tl-none markdown-body'} p-4 rounded-2xl shadow-sm max-w-[85%] text-sm">
+                    ${isUser ? text : formatMarkdown(text)}
+                </div>
+            `;
+            const userAvatar = isUser ? `<div class="flex-shrink-0 bg-slate-200 rounded-full p-3 ml-3"><i class="fas fa-user text-slate-600 text-xl"></i></div>` : '';
+
+            msgDiv.innerHTML = `${avatar}${content}${userAvatar}`;
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        document.getElementById('chat-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const errorDiv = document.getElementById('ai-error');
+            const btn = e.target.querySelector('button');
+            const query = input.value.trim();
+
+            if (!query) return;
+
+            // UI Updates
+            input.value = '';
+            input.disabled = true;
+            btn.disabled = true;
+            btn.innerHTML = '<div class="loader"></div>';
+            errorDiv.classList.add('hidden');
+            
+            appendMessage('user', query);
+
+            try {
+                const responseText = await fetchAIResponse(query);
+                appendMessage('ai', responseText);
+            } catch (error) {
+                console.error("Error en la solicitud: ", error);
+                
+                // Extraer el mensaje real del error de Apps Script o mostrar un genérico
+                let errorMsg = error.message || "Error al conectar con el asesor IA. Por favor, intenta de nuevo.";
+                errorDiv.innerText = errorMsg;
+                errorDiv.classList.remove('hidden');
+            } finally {
+                input.disabled = false;
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+                input.focus();
+            }
+        });
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            renderRutas();
+            renderProtocolos();
+        });
+
+    </script>
+</body>
+</html>
